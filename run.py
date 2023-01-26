@@ -14,7 +14,7 @@ import mongodb
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
+pd.set_option('display.max_colwidth', -1)
 
 @st.experimental_memo
 def get_df():
