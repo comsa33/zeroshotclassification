@@ -78,6 +78,10 @@ with st.sidebar:
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 st.subheader(f'{year} {company_name}')
 with st.container():
+    user_input = st.text_input(
+    "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
+    ""
+    )
     if user_input:
         candidate_labels = [x.strip() for x in user_input.split(',')]
         st.markdown(f'> 레이블 : **{candidate_labels}**')
@@ -88,15 +92,11 @@ f"""
 > - 레이블(default) : **{candidate_labels}**
 """
         )
-    user_input = st.text_input(
-    "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
-    ""
-    )
 
 col1, col2, col3 = st.columns(3)
 with col1:
     idx = st.text_input(
-        "⁜ 조회할 데이터 시작 인덱스를 입력하세요.",
+        "⁜ 조회할 데이터 시작 인덱스를 입력하세요. (defalut=0)",
         ""
     )
 with col2:
