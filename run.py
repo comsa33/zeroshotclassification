@@ -46,11 +46,11 @@ def get_model():
     return model
 
 @st.experimental_memo
-def get_result(docs, candidate_labels, multi_label_input):
+def get_result(model, docs, candidate_labels, multi_label_input):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
     for doc in stqdm(docs):
-        output = classifier(doc, candidate_labels, multi_label=True)
+        output = model(doc, candidate_labels, multi_label=True)
         outputs.append(output)
     result = pd.DataFrame(outputs)
     result['class'] = result['labels'].apply(lambda x: x[0])
@@ -74,10 +74,10 @@ with st.sidebar:
         "⁜ 회사명을 입력/선택하세요.",
         comp_name_ls
     )
-    idx = int(st.sidebar.text_input(
+    idx = st.sidebar.text_input(
         "⁜ 조회할 데이터 시작 인덱스를 입력하세요.",
         ""
-    ))
+    )
     sample_n = st.sidebar.slider(
         "⁜ 조회할 데이터 총 개수를 선택하세요.",
         1, 30, (10)
@@ -95,6 +95,8 @@ if user_input:
     candidate_labels = [x.strip() for x in user_input.split(',')]
 else:
     candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
+if not idx:
+    idx = 0
 
 df_comp = get_df_by_comp(df, company_name)
 df_year = get_df_by_year(df_comp, year)
@@ -103,5 +105,5 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 
-docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[idx:idx+sample_n]
-get_result(docs, candidate_labels, multi_label_input)
+docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
+get_result(model, docs, candidate_labels, multi_label_input)
