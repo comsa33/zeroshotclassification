@@ -15,12 +15,6 @@ import mongodb
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 
-prep.make_user_dictionary()
-kiwi = Kiwi()
-kiwi.load_user_dictionary('user_dictionary.txt')
-kiwi.prepare()
-
-
 @st.experimental_memo
 def get_df():
     client = mongodb.client
@@ -68,27 +62,27 @@ model = get_model()
 with st.sidebar:
     st.text('---[데이터 필터]---')
     year = st.sidebar.slider(
-        '연도를 선택하세요.',
+        '⁜ 연도를 선택하세요.',
         2014, 2022, (2021)
     )
     col = st.sidebar.selectbox(
-        "분석 텍스트 필드를 선택하세요.",
+        "⁜ 분석 텍스트 필드를 선택하세요.",
         ('장점', '단점', '경영진에게')
     )
     company_name = st.sidebar.selectbox(
-        "회사명을 입력/선택하세요.",
+        "⁜ 회사명을 입력/선택하세요.",
         comp_name_ls
     )
     idx = int(st.sidebar.text_input(
-        "조회할 데이터 시작 인덱스를 입력하세요.",
+        "⁜ 조회할 데이터 시작 인덱스를 입력하세요.",
         ""
     ))
     sample_n = st.sidebar.slider(
-        "조회할 데이터 총 개수를 선택하세요.",
+        "⁜ 조회할 데이터 총 개수를 선택하세요.",
         1, 30, (10)
     )
     user_input = st.sidebar.text_input(
-        "레이블을 입력하세요. 콤마로 분리하세요.",
+        "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
         ""
     )
     multi_label_input = st.radio(

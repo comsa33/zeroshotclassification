@@ -15,6 +15,6 @@ RUN pip3 install torch torchvision torchaudio --extra-index-url https://download
 COPY . /usr/src/ZEROSHOTCLASSIFICATION
 WORKDIR /usr/src/ZEROSHOTCLASSIFICATION/
 
-EXPOSE 8502
+EXPOSE 8501
 
 CMD ["streamlit", "run", "run.py"]

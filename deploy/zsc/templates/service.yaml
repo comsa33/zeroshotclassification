@@ -8,7 +8,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - port: {{ .Values.service.port }}
-    targetPort: 8502
+    targetPort: 8501
     protocol: TCP
     nodePort: 31420
   selector:
