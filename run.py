@@ -92,13 +92,16 @@ with st.sidebar:
         )
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
+st.subheader(f'{year} {company_name}')
 if user_input:
     candidate_labels = [x.strip() for x in user_input.split(',')]
     st.markdown(f'> 레이블 : **{candidate_labels}**')
 else:
     candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
-    st.markdown(f'> 레이블(default) : **{candidate_labels}**')
-    st.markdown('우측 사이드바에서 직접 레이블을 설정할 수도 있습니다.')
+    st.markdown(f'''
+> 레이블(default) : **{candidate_labels}**
+> 우측 사이드바에서 직접 레이블을 설정할 수도 있습니다.
+''')
 
 if not idx:
     idx = 0
@@ -112,4 +115,4 @@ with st.container():
     st.checkbox("넓이 자동 맞춤", value=False, key="use_container_width")
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
     result = get_result(model, docs, candidate_labels, multi_label_input)
-    st.dataframe(result, height=1400, use_container_width=st.session_state.use_container_width)
+    st.dataframe(result, height=800, use_container_width=st.session_state.use_container_width)
