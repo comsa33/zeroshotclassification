@@ -102,7 +102,7 @@ else:
 > - 레이블(default) : **{candidate_labels}**
 
 > - 우측 사이드바에서 직접 레이블을 설정할 수도 있습니다.
-"""
+""")
 
 if not idx:
     idx = 0
