@@ -54,7 +54,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input):
         outputs.append(output)
     result = pd.DataFrame(outputs)
     result['class'] = result['labels'].apply(lambda x: x[0])
-    st.dataframe(result, use_container_width=st.session_state.use_container_width)
+    return result
 
 
 df, comp_name_ls = get_df()
@@ -105,5 +105,7 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 
+st.checkbox("넓이 자동 맞춤", value=False, key="use_container_width")
 docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
-get_result(model, docs, candidate_labels, multi_label_input)
+result = get_result(model, docs, candidate_labels, multi_label_input)
+st.dataframe(result, use_container_width=st.session_state.use_container_width)
