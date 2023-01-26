@@ -62,47 +62,53 @@ model = get_model()
 
 with st.sidebar:
     st.text('---[데이터 필터]---')
-    year = st.sidebar.slider(
+    year = st.slider(
         '⁜ 연도를 선택하세요.',
         2014, 2022, (2021)
     )
-    col = st.sidebar.selectbox(
+    col = st.selectbox(
         "⁜ 분석 텍스트 필드를 선택하세요.",
         ('장점', '단점', '경영진에게')
     )
-    company_name = st.sidebar.selectbox(
+    company_name = st.selectbox(
         "⁜ 회사명을 입력/선택하세요.",
         comp_name_ls
     )
-    idx = st.sidebar.text_input(
-        "⁜ 조회할 데이터 시작 인덱스를 입력하세요.",
-        ""
-    )
-    sample_n = st.sidebar.slider(
-        "⁜ 조회할 데이터 총 개수를 선택하세요.",
-        1, 30, (10)
-    )
-    user_input = st.sidebar.text_input(
-        "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
-        ""
-    )
-    multi_label_input = st.radio(
-            "⁜ 멀티 레이블을 키고 끌 수 있습니다.",
-            ('On', 'Off')
-        )
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 st.subheader(f'{year} {company_name}')
-if user_input:
-    candidate_labels = [x.strip() for x in user_input.split(',')]
-    st.markdown(f'> 레이블 : **{candidate_labels}**')
-else:
-    candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
-    st.markdown(f"""
+with st.container():
+    if user_input:
+        candidate_labels = [x.strip() for x in user_input.split(',')]
+        st.markdown(f'> 레이블 : **{candidate_labels}**')
+    else:
+        candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
+        st.markdown(
+f"""
 > - 레이블(default) : **{candidate_labels}**
+"""
+        )
+    user_input = st.text_input(
+    "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
+    ""
+    )
 
-> - 우측 사이드바에서 직접 레이블을 설정할 수도 있습니다.
-""")
+col1, col2, col3 = st.columns(3)
+with col1:
+    idx = st.text_input(
+        "⁜ 조회할 데이터 시작 인덱스를 입력하세요.",
+        ""
+    )
+with col2:
+    sample_n = st.slider(
+        "⁜ 조회할 데이터 총 개수를 선택하세요.",
+        1, 30, (10)
+    )
+with col3:
+    multi_label_input = st.radio(
+        "⁜ 멀티 레이블을 키고 끌 수 있습니다.",
+        ('On', 'Off')
+    )
 
 if not idx:
     idx = 0
