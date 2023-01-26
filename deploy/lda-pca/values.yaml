@@ -5,11 +5,11 @@
 replicaCount: 1
 
 image:
-  repository: localhost:32000/lda-pca
+  repository: localhost:32000/zsc
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
 service:
   type: NodePort
-  port: 8501
+  port: 8502

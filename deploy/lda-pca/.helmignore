@@ -3,4 +3,3 @@
 # negation (prefixed with !). Only one pattern per line.
 # Common VCS dirs
 .git/
-__pycache__
