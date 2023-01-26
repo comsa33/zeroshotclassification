@@ -46,11 +46,11 @@ def get_model():
     return model
 
 @st.experimental_memo
-def get_result(model, docs, candidate_labels, multi_label_input):
+def get_result(_model, docs, candidate_labels, multi_label_input):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
     for doc in stqdm(docs):
-        output = model(doc, candidate_labels, multi_label=True)
+        output = _model(doc, candidate_labels, multi_label=multi_label)
         outputs.append(output)
     result = pd.DataFrame(outputs)
     result['class'] = result['labels'].apply(lambda x: x[0])
