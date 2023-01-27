@@ -49,6 +49,7 @@ def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
+@st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -59,6 +60,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
+@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -66,6 +68,7 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean()
 
+@st.experimental_memo
 def draw_radar_chart(df):
     fig = px.line_polar(df.reset_index(), r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
