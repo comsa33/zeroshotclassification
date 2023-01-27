@@ -1,7 +1,6 @@
 import re
 import os
 import pickle
-from PIL import Image
 
 import pandas as pd
 from transformers import pipeline
@@ -15,8 +14,6 @@ import mongodb
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-hrz_bar = Image.open('div_hrz_bar.png')
 
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
@@ -136,9 +133,6 @@ with col1:
     result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
     st.dataframe(result)
     st.caption(f"{year}년 {company_name}추론 결과표")
-
-with col2:
-    vt_bar_img
 
 with col3:
     score_avg = get_score_avg_by_label(result)
