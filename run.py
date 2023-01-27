@@ -14,7 +14,18 @@ import mongodb
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-pd.set_option('display.max_colwidth', -1)
+
+st.set_page_config(
+    page_title="리뷰데이터 제로샷 자연어 추론",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        '데이터 분석': 'http://http://59.10.38.6:31419/',
+        'Reference': "https://github.com/microsoft/DeBERTa/",
+        'About us': "http://www.gravylab.co.kr/"
+    }
+)
 
 @st.experimental_memo
 def get_df():
@@ -122,4 +133,12 @@ with st.container():
     st.checkbox("넓이 자동 맞춤", value=False, key="use_container_width")
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
     result = get_result(model, docs, candidate_labels, multi_label_input)
-    st.dataframe(result, height=800, use_container_width=st.session_state.use_container_width)
+    st.dataframe(result, height=400, use_container_width=st.session_state.use_container_width)
+
+with st.container():
+    st.markdown("### 사용한 DL model : mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
+    st.markdown(
+        """
+이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
+        """
+    )
