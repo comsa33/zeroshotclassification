@@ -4,7 +4,6 @@ import pickle
 
 import pandas as pd
 from transformers import pipeline
-import torch
 from stqdm import stqdm
 import streamlit as st
 
@@ -13,12 +12,11 @@ import preprocess as prep
 import mongodb
 
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
+    page_icon="📜",
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="auto",
 )
 
 @st.experimental_memo
@@ -60,7 +58,6 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
-@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -87,10 +84,9 @@ with st.sidebar:
     )
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
-st.image(hrz_bar, use_column_width='auto')
 st.subheader(f'{year}년 {company_name}')
 with st.container():
-    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '기회 및 가능성']
+    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
     user_input = st.text_input(
     f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요. (default={default_candidate_labels})",
     ""
@@ -127,14 +123,14 @@ df_year = get_df_by_year(df_comp, year)
 col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
 
 st.subheader("Result")
-col1, col2, col3 = st.columns([7, 1, 2])
+col1, col2 = st.columns([7, 1, 2])
 with col1:
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
     result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
     st.dataframe(result)
     st.caption(f"{year}년 {company_name}추론 결과표")
 
-with col3:
+with col2:
     score_avg = get_score_avg_by_label(result)
     st.dataframe(score_avg)
     st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
