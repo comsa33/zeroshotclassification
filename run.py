@@ -133,13 +133,13 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 col1, col2 = st.columns([4, 1])
 with col1:
-    st.write("추론 결과표")
+    st.markdown("추론 결과표")
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
     result = get_result(model, docs, candidate_labels, multi_label_input)
     st.dataframe(result)
 
 with col2:
-    st.write("각 레이블 평균 추론 스코어")
+    st.markdown("각 레이블 평균 추론 스코어")
     score_avg = get_score_avg_by_label(result)
     st.dataframe(score_avg)
 
