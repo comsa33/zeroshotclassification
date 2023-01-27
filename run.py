@@ -90,7 +90,7 @@ st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 st.image(hrz_bar, use_column_width='auto')
 st.subheader(f'{year}년 {company_name}')
 with st.container():
-    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
+    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '기회 및 가능성']
     user_input = st.text_input(
     f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요. (default={default_candidate_labels})",
     ""
