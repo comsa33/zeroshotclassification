@@ -16,14 +16,12 @@ import mongodb
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-g_logo = Image.open('g_logo192_192.png')
 hrz_bar = Image.open('div_hrz_bar.png')
 
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
-    page_icon=st.image(g_logo),
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="auto"
 )
 
 @st.experimental_memo
