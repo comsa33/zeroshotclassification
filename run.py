@@ -4,6 +4,7 @@ import pickle
 
 import pandas as pd
 from transformers import pipeline
+import plotly.express as px
 from stqdm import stqdm
 import streamlit as st
 
@@ -65,6 +66,11 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean()
 
+def draw_radar_chart(df):
+    fig = px.line_polar(df.reset_index(), r=0, theta='index', line_close=True)
+    fig.update_traces(fill='toself')
+    st.plotly_chart(fig)
+
 df, comp_name_ls = get_df()
 model = get_model()
 
@@ -124,7 +130,7 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 st.subheader("Result")
 
-col1, col2, col3 = st.columns([7, 1, 2])
+col1, col2, col3 = st.columns([8, 1, 3])
 
 with col1:
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
@@ -134,7 +140,7 @@ with col1:
 
 with col3:
     score_avg = get_score_avg_by_label(result)
-    st.dataframe(score_avg)
+    draw_radar_chart(score_avg)
     st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
 with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):

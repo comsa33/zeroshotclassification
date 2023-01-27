@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /usr/src
 
 RUN apt-get update -y && apt-get upgrade -y
-RUN pip install pymongo pandas streamlit stqdm transformers
+RUN pip install pymongo pandas plotly streamlit stqdm transformers
 RUN pip install transformers[sentencepiece]
 RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
