@@ -19,12 +19,7 @@ st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
     page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        '데이터 분석': 'http://http://59.10.38.6:31419/',
-        'Reference': "https://github.com/microsoft/DeBERTa/",
-        'About us': "http://www.gravylab.co.kr/"
-    }
+    initial_sidebar_state="auto",
 )
 
 @st.experimental_memo
