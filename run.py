@@ -114,7 +114,7 @@ with col1:
 with col3:
     sample_n = st.slider(
         "⁜ 조회할 데이터 총 개수를 선택하세요.",
-        1, 30, (10)
+        1, 100, (10)
     )
 with col5:
     multi_label_input = st.radio(
