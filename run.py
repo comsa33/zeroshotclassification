@@ -52,10 +52,10 @@ def get_model():
     return model
 
 @st.experimental_memo
-def get_result(_model, docs, candidate_labels, multi_label_input):
+def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
-    for doc in stqdm(docs):
+    for doc in stqdm(docs[int(idx):int(idx)+sample_n]):
         output = _model(doc, candidate_labels, multi_label=multi_label)
         outputs.append(output)
     result = pd.DataFrame(outputs)
@@ -134,8 +134,8 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 col1, col2 = st.columns([4, 1])
 with col1:
     st.markdown("추론 결과표")
-    docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()[int(idx):int(idx)+sample_n]
-    result = get_result(model, docs, candidate_labels, multi_label_input)
+    docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
+    result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
     st.dataframe(result)
 
 with col2:
