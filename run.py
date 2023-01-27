@@ -45,7 +45,7 @@ def get_df_by_year(df, year):
 
 @st.experimental_memo
 def get_model():
-    model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-mnli-xnli")
+    model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
