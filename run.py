@@ -102,22 +102,22 @@ with st.container():
         candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
         st.markdown(
 f"""
-> - 레이블(default) : **{candidate_labels}**
+- 레이블(default) : **{candidate_labels}**
 """
         )
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
 with col1:
     idx = st.text_input(
         "⁜ 조회할 데이터 시작 인덱스를 입력하세요. (defalut=0)",
         ""
     )
-with col2:
+with col3:
     sample_n = st.slider(
         "⁜ 조회할 데이터 총 개수를 선택하세요.",
         1, 30, (10)
     )
-with col3:
+with col5:
     multi_label_input = st.radio(
         "⁜ 멀티 레이블을 키고 끌 수 있습니다.",
         ('On', 'Off')
