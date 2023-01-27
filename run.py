@@ -69,7 +69,7 @@ def get_score_avg_by_label(result):
 def draw_radar_chart(df):
     fig = px.line_polar(df.reset_index(), r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, use_container_width=True)
 
 df, comp_name_ls = get_df()
 model = get_model()
@@ -130,7 +130,7 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 st.subheader("Result")
 
-col1, col2, col3 = st.columns([8, 1, 3])
+col1, col2 = st.columns([2, 1])
 
 with col1:
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
@@ -138,7 +138,7 @@ with col1:
     st.dataframe(result)
     st.caption(f"{year}년 {company_name}추론 결과표")
 
-with col3:
+with col2:
     score_avg = get_score_avg_by_label(result)
     draw_radar_chart(score_avg)
     st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
