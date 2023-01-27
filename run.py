@@ -88,7 +88,7 @@ st.subheader(f'{year}년 {company_name}')
 with st.container():
     default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
     user_input = st.text_input(
-    f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요. (default={default_candidate_labels})",
+    f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요.\n\t(default={default_candidate_labels})",
     ""
     )
     if user_input:
@@ -123,14 +123,16 @@ df_year = get_df_by_year(df_comp, year)
 col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
 
 st.subheader("Result")
-col1, col2 = st.columns([7, 1, 2])
+
+col1, col2, col3 = st.columns([7, 1, 2])
+
 with col1:
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
     result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
     st.dataframe(result)
     st.caption(f"{year}년 {company_name}추론 결과표")
 
-with col2:
+with col3:
     score_avg = get_score_avg_by_label(result)
     st.dataframe(score_avg)
     st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
