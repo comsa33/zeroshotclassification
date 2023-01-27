@@ -1,6 +1,7 @@
 import re
 import os
 import pickle
+from PIL import Image
 
 import pandas as pd
 from transformers import pipeline
@@ -15,9 +16,16 @@ import mongodb
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
+g_logo = Image.open('g_logo192_192.png')
+hrz_bar = Image.open('div_hrz_bar.png')
+vt_bar = Image.open('div_vt_bar.png')
+g_logo_img = st.image(g_logo, use_column_width='auto')
+hrz_bar_img = st.image(hrz_bar, use_column_width='auto')
+vt_bar_img = st.image(vt_bar, use_column_width='auto')
+
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
-    page_icon="🤖",
+    page_icon=g_logo_img,
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -88,61 +96,62 @@ with st.sidebar:
     )
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
-st.subheader(f'{year} {company_name}')
+hrz_bar_img
+st.subheader(f'{year}년 {company_name}')
 with st.container():
+    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
     user_input = st.text_input(
-    "⁜ 레이블을 입력하세요. 콤마로 분리하세요.",
+    f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요. (default={default_candidate_labels})",
     ""
     )
     if user_input:
         candidate_labels = [x.strip() for x in user_input.split(',')]
-        st.markdown(f'> 레이블 : **{candidate_labels}**')
     else:
-        candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
-        st.markdown(
-f"""
-- 레이블(default) : **{candidate_labels}**
-"""
+        candidate_labels = default_candidate_labels
+
+
+    col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
+    with col1:
+        idx = st.text_input(
+            "✓ 조회할 데이터 시작 인덱스를 입력하세요. (defalut=0)",
+            ""
+        )
+    with col3:
+        sample_n = st.slider(
+            "✓ 조회할 데이터 총 개수를 선택하세요.",
+            1, 100, (10)
+        )
+    with col5:
+        multi_label_input = st.radio(
+            "✓ 멀티 레이블을 키고 끌 수 있습니다.",
+            ('On', 'Off')
         )
 
-col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
-with col1:
-    idx = st.text_input(
-        "⁜ 조회할 데이터 시작 인덱스를 입력하세요. (defalut=0)",
-        ""
-    )
-with col3:
-    sample_n = st.slider(
-        "⁜ 조회할 데이터 총 개수를 선택하세요.",
-        1, 100, (10)
-    )
-with col5:
-    multi_label_input = st.radio(
-        "⁜ 멀티 레이블을 키고 끌 수 있습니다.",
-        ('On', 'Off')
-    )
-
-if not idx:
-    idx = 0
+    if not idx:
+        idx = 0
 
 df_comp = get_df_by_comp(df, company_name)
 df_year = get_df_by_year(df_comp, year)
 
 col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
 
-col1, col2 = st.columns([4, 1])
+st.subheader("Result")
+col1, col2, col3 = st.columns([7, 1, 2])
 with col1:
-    st.markdown("추론 결과표")
     docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
     result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
     st.dataframe(result)
+    st.caption(f"{year}년 {company_name}추론 결과표")
 
 with col2:
-    st.markdown("각 레이블 평균 추론 스코어")
+    vt_bar_img
+
+with col3:
     score_avg = get_score_avg_by_label(result)
     st.dataframe(score_avg)
+    st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
-with st.expander("자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
+with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
     st.markdown(
         """
 이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
