@@ -18,14 +18,10 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 g_logo = Image.open('g_logo192_192.png')
 hrz_bar = Image.open('div_hrz_bar.png')
-vt_bar = Image.open('div_vt_bar.png')
-g_logo_img = st.image(g_logo, use_column_width='auto')
-hrz_bar_img = st.image(hrz_bar, use_column_width='auto')
-vt_bar_img = st.image(vt_bar, use_column_width='auto')
 
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
-    page_icon=g_logo_img,
+    page_icon=st.image(g_logo),
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -96,7 +92,7 @@ with st.sidebar:
     )
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
-hrz_bar_img
+st.image(hrz_bar, use_column_width='auto')
 st.subheader(f'{year}년 {company_name}')
 with st.container():
     default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
