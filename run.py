@@ -1,6 +1,8 @@
 import pickle
 from collections import Counter
+from PIL import Image
 
+from wordcloud import WordCloud
 import pandas as pd
 from kiwipiepy import Kiwi
 from kiwipiepy.utils import Stopwords
@@ -129,7 +131,7 @@ def draw_radar_charts_yearly(dfs, all_years):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-def draw_word_squarify_plot(result, label_selected, n_words):
+def draw_word_plot(result, label_selected, n_words, style='squarify'):
     sents_by_class = ' '.join(result[result['class']==f"{label_selected}"]['sequence'].tolist())
 
     tokens = stopwords.filter(kiwi.tokenize(sents_by_class))
@@ -140,9 +142,20 @@ def draw_word_squarify_plot(result, label_selected, n_words):
     cnt_nouns = Counter(nouns).most_common(n_words)
     nouns_df = pd.DataFrame(cnt_nouns)
 
-    fig = plt.figure(figsize=(15, 15))
-    squarify.plot(nouns_df[1], label = nouns_df[0], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
-    plt.axis('off')
+    if style == 'squarify':
+        fig = plt.figure(figsize=(10, 5))
+        squarify.plot(nouns_df[1], label = nouns_df[0], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
+        plt.axis('off')
+
+    elif style == 'wordcloud':
+        word_cloud = WordCloud(font_path='/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+                        width = 1000, height = 500,
+                        background_color='white')
+        word_cloud.generate_from_frequencies(dict(cnt_nouns))
+        fig = plt.figure(figsize=(10, 5))
+        plt.imshow(word_cloud)
+        plt.axis("off")
+        plt.tight_layout(pad=0)
     st.pyplot(fig)
 
 df, comp_name_ls = get_df()
@@ -182,13 +195,13 @@ with st.container():
     else:
         candidate_labels = default_candidate_labels
 
-    col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
+    col1, _, col2, _, col3 = st.columns([5,1,5,1,5])
     with col1:
         idx = st.text_input(
             "✓ 조회할 데이터 시작 인덱스를 입력하세요. (defalut=0)",
             ""
         )
-    with col3:
+    with col2:
         st.checkbox(f"전체 데이터 선택 (전체 데이터 개수:{n_df_year})", value=False, key="use_all_yealy_data")
         if st.session_state.use_all_yealy_data:
             sample_n = n_df_year
@@ -197,7 +210,7 @@ with st.container():
                 "✓ 딥러닝 모델에 추론할 데이터 총 개수를 선택하세요.",
                 1, 30, (10)
             )
-    with col5:
+    with col3:
         multi_label_input = st.radio(
             "✓ 멀티 레이블을 키고 끌 수 있습니다.",
             ('On', 'Off')
@@ -211,15 +224,15 @@ tab1, tab2, tab3 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 �
 with tab1:
     st.subheader(f'{year}년 {company_name}-{col} 샘플 결과')
 
-    col1, col2 = st.columns([2, 1])
+    tab1_col1, tab1_col2 = st.columns([2, 1])
 
-    with col1:
+    with tab1_col1:
         docs_sample = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
         result = get_result(model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
         st.dataframe(result)
         st.caption(f"{year}년 {company_name}추론 결과표")
 
-    with col2:
+    with tab1_col2:
         score_avg = get_score_avg_by_label(result)
         draw_radar_chart(score_avg)
         st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
@@ -241,13 +254,20 @@ with tab2:
 
 with tab3:
     st.subheader(f'{year}년 {company_name}-{col} 레이블별 관련 빈출 어휘 그래프')
-
-    label_selected = st.selectbox(
-        "✓ 레이블 명을 입력/선택하세요.",
-        candidate_labels
-    )
-    n_words = st.slider(
-        "✓ 그래프에서 보여줄 단어의 수를 선택하세요.",
-        20, 50, (30)
-    )
-    draw_word_squarify_plot(result, label_selected, n_words)
+    tab3_col1, _, tab3_col2, _, tab3_col3 = st.columns([5,1,5,1,5])
+    with tab3_col1:
+        label_selected = st.selectbox(
+            "✓ 레이블 명을 입력/선택하세요.",
+            candidate_labels
+        )
+    with tab3_col2:
+        n_words = st.slider(
+            "✓ 그래프에서 보여줄 단어의 수를 선택하세요.",
+            20, 50, (30)
+        )
+    with tab3_col3:
+        style = st.radio(
+            "✓ 시각화 스타일을 선택할 수 있습니다.",
+            ('squarify', 'wordcloud')
+        )
+    draw_word_plot(result, label_selected, n_words, style=style)
