@@ -5,6 +5,7 @@ import pickle
 import pandas as pd
 from transformers import pipeline
 import plotly.express as px
+import plotly.graph_objects as go
 from stqdm import stqdm
 import streamlit as st
 
@@ -66,11 +67,11 @@ def get_score_avg_by_label(result):
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
         dicts.append(dict(zip(labels, scores)))
     score_df = pd.DataFrame(dicts)
-    return score_df.mean()
+    return score_df.mean().reset_index().sort_values(by='index')
 
 @st.experimental_memo
 def draw_radar_chart(df):
-    fig = px.line_polar(df.reset_index(), r=0, theta='index', line_close=True)
+    fig = px.line_polar(df, r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
     fig.update_layout(
         polar=dict(
@@ -78,6 +79,28 @@ def draw_radar_chart(df):
             visible=True,
             range=[0, 1]
             ))
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+@st.experimental_memo
+def draw_radar_charts_yearly(dfs, all_years):
+    fig = go.Figure()
+    for year, df in zip(all_years, dfs):
+        fig.add_trace(
+            go.Scatterpolar(
+                r=df[0].tolist(),
+                theta=df['index'].tolist(),
+                fill='toself',
+                name=f'{year}'
+            )
+        )
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )
+        )
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -118,11 +141,6 @@ with st.container():
     else:
         candidate_labels = default_candidate_labels
 
-tab1, tab2 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교"])
-
-with tab1:
-    st.subheader(f'{year}년 {company_name} 샘플 결과')
-
     col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
     with col1:
         idx = st.text_input(
@@ -146,6 +164,12 @@ with tab1:
 
     if not idx:
         idx = 0
+
+tab1, tab2 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교"])
+
+with tab1:
+    st.subheader(f'{year}년 {company_name} 샘플 결과')
+
 
     st.subheader("Result")
 
@@ -172,13 +196,12 @@ with tab1:
 with tab2:
     st.subheader(f'{company_name} 연도별 트렌드 결과')
 
+    yealy_score_dfs = []
     all_years = df_comp['year'].unique().tolist()
     for year in all_years:
         df_year = get_df_by_year(df_comp, year)
         docs_by_year = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
-        result = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
-        score_avg = get_score_avg_by_label(result)
-        with st.container():
-            draw_radar_chart(score_avg)
-            st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
-
+        result_by_year = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
+        score_avg_by_year = get_score_avg_by_label(result_by_year)
+        yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
+    draw_radar_charts_yearly(yealy_score_dfs, all_years)
