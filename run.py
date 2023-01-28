@@ -271,3 +271,4 @@ with tab3:
             ('squarify', 'wordcloud')
         )
     draw_word_plot(result, label_selected, n_words, style=style)
+
