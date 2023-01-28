@@ -30,7 +30,7 @@ stopwords = Stopwords()
 
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
-    page_icon="	🤖",
+    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -82,6 +82,17 @@ def get_score_avg_by_label(result):
         dicts.append(dict(zip(labels, scores)))
     score_df = pd.DataFrame(dicts)
     return score_df.mean().reset_index().sort_values(by='index')
+
+@st.experimental_memo
+def get_all_score_dfs(df, col, model, candidate_labels, multi_label_input, idx, sample_n):
+    yealy_score_dfs = []
+    all_years = df['year'].unique().tolist()
+    for yr in stqdm(all_years):
+        df_year_ = get_df_by_year(df_comp, yr)
+        docs_by_year = df_year_[col].apply(prep.preprocess_text).tolist()
+        result_by_year = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
+        yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
+    return yealy_score_dfs, all_years
 
 @st.experimental_singleton
 def draw_radar_chart(df):
@@ -223,14 +234,9 @@ with tab1:
 with tab2:
     st.subheader(f'{company_name}-{col} 연도별 트렌드 결과')
 
-    yealy_score_dfs = []
-    all_years = df_comp['year'].unique().tolist()
-    for year in stqdm(all_years):
-        df_year = get_df_by_year(df_comp, year)
-        docs_by_year = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
-        result_by_year = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
-        score_avg_by_year = get_score_avg_by_label(result_by_year)
-        yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
+    yealy_score_dfs, all_years = get_all_score_dfs(
+        df_comp, col_dic[col], model, candidate_labels, multi_label_input, idx, sample_n
+    )
     draw_radar_charts_yearly(yealy_score_dfs, all_years)
 
 with tab3:
