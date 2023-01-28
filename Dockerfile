@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /usr/src
 
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install fontconfig
+RUN apt-get install fontconfig -y
 RUN apt-get install fonts-nanum*
 RUN fc-cache -fv
 RUN pip install pymongo pandas plotly streamlit stqdm transformers kiwipiepy matplotlib squarify
