@@ -72,6 +72,13 @@ def get_score_avg_by_label(result):
 def draw_radar_chart(df):
     fig = px.line_polar(df.reset_index(), r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+            visible=True,
+            range=[0, 1]
+            ))
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 df, comp_name_ls = get_df()
@@ -92,8 +99,14 @@ with st.sidebar:
         comp_name_ls
     )
 
+col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
+
+df_comp = get_df_by_comp(df, company_name)
+df_year = get_df_by_year(df_comp, year)
+n_df_year = len(df_year)
+
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
-st.subheader(f'{year}년 {company_name}')
+
 with st.container():
     default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
     user_input = st.text_input(
@@ -105,6 +118,10 @@ with st.container():
     else:
         candidate_labels = default_candidate_labels
 
+tab1, tab2 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교"])
+
+with tab1:
+    st.subheader(f'{year}년 {company_name} 샘플 결과')
 
     col1, col2, col3, col4, col5 = st.columns([5,1,5,1,5])
     with col1:
@@ -113,10 +130,14 @@ with st.container():
             ""
         )
     with col3:
-        sample_n = st.slider(
-            "✓ 조회할 데이터 총 개수를 선택하세요.",
-            1, 100, (10)
-        )
+        st.checkbox(f"전체 데이터 선택 (전체 데이터 개수:{n_df_year})", value=False, key="use_all_yealy_data")
+        if st.session_state.use_all_yealy_data:
+            sample_n = n_df_year
+        else:
+            sample_n = st.slider(
+                "✓ 딥러닝 모델에 추론할 데이터 총 개수를 선택하세요.",
+                1, 30, (10)
+            )
     with col5:
         multi_label_input = st.radio(
             "✓ 멀티 레이블을 키고 끌 수 있습니다.",
@@ -126,29 +147,38 @@ with st.container():
     if not idx:
         idx = 0
 
-df_comp = get_df_by_comp(df, company_name)
-df_year = get_df_by_year(df_comp, year)
+    st.subheader("Result")
 
-col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
+    col1, col2 = st.columns([2, 1])
 
-st.subheader("Result")
+    with col1:
+        docs_sample = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
+        result = get_result(model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
+        st.dataframe(result)
+        st.caption(f"{year}년 {company_name}추론 결과표")
 
-col1, col2 = st.columns([2, 1])
+    with col2:
+        score_avg = get_score_avg_by_label(result)
+        draw_radar_chart(score_avg)
+        st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
-with col1:
-    docs = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
-    result = get_result(model, docs, candidate_labels, multi_label_input, idx, sample_n)
-    st.dataframe(result)
-    st.caption(f"{year}년 {company_name}추론 결과표")
+    with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
+        st.markdown(
+            """
+    이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
+            """
+        )
 
-with col2:
-    score_avg = get_score_avg_by_label(result)
-    draw_radar_chart(score_avg)
-    st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
+with tab2:
+    st.subheader(f'{company_name} 연도별 트렌드 결과')
 
-with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
-    st.markdown(
-        """
-이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
-        """
-    )
+    all_years = df_comp['year'].unique().tolist()
+    for year in all_years:
+        df_year = get_df_by_year(df_comp, year)
+        docs_by_year = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
+        result = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
+        score_avg = get_score_avg_by_label(result)
+        with st.container():
+            draw_radar_chart(score_avg)
+            st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
+
