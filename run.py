@@ -50,7 +50,7 @@ def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
-@st.cache(suppress_st_warning=True)
+@st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -61,7 +61,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
-@st.cache(suppress_st_warning=True)
+@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
