@@ -40,6 +40,7 @@ def get_df_by_comp(df, company_name):
     df_comp = funcs.get_comp(df, company_name)
     return df_comp
 
+@st.experimental_memo
 def get_df_by_year(df, year):
     df_year = df.query(f'year == {year}')
     return df_year
@@ -49,6 +50,7 @@ def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
+@st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -59,6 +61,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
+@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
