@@ -66,6 +66,11 @@ def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
+def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
+    multi_label = True if multi_label_input == "ON" else False
+    output = _model(sample_text, candidate_labels, multi_label=multi_label)
+    return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
+
 @st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
@@ -180,12 +185,13 @@ col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management
 
 df_comp = get_df_by_comp(df, company_name)
 df_year = get_df_by_year(df_comp, year)
-n_df_year = len(df_year)
+n_df_year = len(df_year) 
+n_df_year_limit = n_df_year if n_df_year < 101 else 100
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
 
 with st.container():
-    default_candidate_labels = ['복지 및 급여', '워라밸', '사내문화', '승진 기회 및 가능성']
+    default_candidate_labels = ['복지 워라밸', '연봉', '수직 꼰대', '기회 가능성', '수평 자율 자유', '동료 협업', '야근 일']
     user_input = st.text_input(
     f"✓ 사용자 레이블을 입력하시고, 콤마로 분리하세요.\n\t(default={default_candidate_labels})",
     ""
@@ -202,9 +208,9 @@ with st.container():
             ""
         )
     with col2:
-        st.checkbox(f"전체 데이터 선택 (전체 데이터 개수:{n_df_year})", value=False, key="use_all_yealy_data")
+        st.checkbox(f"전체 데이터 선택 (전체 데이터 개수:{n_df_year}, 100개 이상의 경우 100으로 제한)", value=False, key="use_all_yealy_data")
         if st.session_state.use_all_yealy_data:
-            sample_n = n_df_year
+            sample_n = n_df_year_limit
         else:
             sample_n = st.slider(
                 "✓ 딥러닝 모델에 추론할 데이터 총 개수를 선택하세요.",
@@ -219,9 +225,25 @@ with st.container():
     if not idx:
         idx = 0
 
-tab1, tab2, tab3 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교", "🏷️ 레이블 키워드 관련 빈출 어휘"])
+tab1, tab2, tab3, tab4 = st.tabs(["🗃 샘플 텍스트 테스트", "🗃 리뷰 데이터 테스트", "📈 연도별 트렌드 결과 비교", "🏷️ 레이블 키워드 관련 빈출 어휘"])
 
 with tab1:
+    with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
+        st.markdown(
+            """
+- 이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
+            """
+        )
+
+    sample_text = st.text_input(
+        "✓ 분류하고자 하는 샘플 텍스트를 입력하세요.",
+        "Mobility intelligence as a service. 카카오모빌리티는 카카오택시, 카카오내비, 카카오대리, 카카오T, 카카오주차, 카카오바이크 등 다양한 모빌리티 서비스들을 사용자에게 제공하고 있으며 이를 통해 대한민국의 모빌리티 산업을 선도하고 있습니다. 이 많은 서비스를 유저와 업계 종사자에게 유려하게 제공하기 위해서는 사용자와 직접 연결되는 클라이언트가 매우 중요합니다. 카카오모빌리티에서는 이러한 서비스 클라이언트들이 훌륭한 동료, 훌륭한 조직문화 속에서 함께 고민하고 만들어가는 과정을 통해 더 나은 모빌리티 세상을 만들 수 있는 기회를 제공할 것입니다."
+    )
+    if sample_text:
+        sample_result = test_sample_text(model, sample_text, candidate_labels, multi_label_input)
+        st.dataframe(sample_result)
+
+with tab2:
     st.subheader(f'{year}년 {company_name}-{col} 샘플 결과')
 
     tab1_col1, tab1_col2 = st.columns([2, 1])
@@ -237,14 +259,7 @@ with tab1:
         draw_radar_chart(score_avg)
         st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
-    with st.expander("⁜ 자세히 보기 : 사용한 DL model - [mDeBERTa-v3-base-xnli-multilingual-nli-2mil7]"):
-        st.markdown(
-            """
-    이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
-            """
-        )
-
-with tab2:
+with tab3:
     st.subheader(f'{company_name}-{col} 연도별 트렌드 결과')
 
     yealy_score_dfs, all_years = get_all_score_dfs(
@@ -252,7 +267,7 @@ with tab2:
     )
     draw_radar_charts_yearly(yealy_score_dfs, all_years)
 
-with tab3:
+with tab4:
     st.subheader(f'{year}년 {company_name}-{col} 레이블별 관련 빈출 어휘 그래프')
     tab3_col1, _, tab3_col2, _, tab3_col3 = st.columns([5,1,5,1,5])
     with tab3_col1:
