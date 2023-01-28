@@ -50,7 +50,7 @@ def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
 
-@st.experimental_memo
+@st.cache(suppress_st_warning=True)
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -61,7 +61,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
-@st.experimental_memo
+@st.cache(suppress_st_warning=True)
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -69,6 +69,7 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean().reset_index().sort_values(by='index')
 
+@st.experimental_singleton
 def draw_radar_chart(df):
     fig = px.line_polar(df, r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
@@ -81,6 +82,7 @@ def draw_radar_chart(df):
     )
     st.plotly_chart(fig, use_container_width=True)
 
+@st.experimental_singleton
 def draw_radar_charts_yearly(dfs, all_years):
     fig = go.Figure()
     for year, df in zip(all_years, dfs):
