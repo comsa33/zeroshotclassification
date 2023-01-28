@@ -84,13 +84,13 @@ def get_score_avg_by_label(result):
     return score_df.mean().reset_index().sort_values(by='index')
 
 @st.experimental_memo
-def get_all_score_dfs(df, col, model, candidate_labels, multi_label_input, idx, sample_n):
+def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx, sample_n):
     yealy_score_dfs = []
     all_years = df['year'].unique().tolist()
     for yr in stqdm(all_years):
         df_year_ = get_df_by_year(df_comp, yr)
         docs_by_year = df_year_[col].apply(prep.preprocess_text).tolist()
-        result_by_year = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
+        result_by_year = get_result(_model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
         yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
     return yealy_score_dfs, all_years
 
