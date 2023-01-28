@@ -198,7 +198,7 @@ with tab2:
 
     yealy_score_dfs = []
     all_years = df_comp['year'].unique().tolist()
-    for year in all_years:
+    for year in stqdm(all_years):
         df_year = get_df_by_year(df_comp, year)
         docs_by_year = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
         result_by_year = get_result(model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
