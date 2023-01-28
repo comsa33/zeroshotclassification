@@ -1,11 +1,15 @@
-import re
-import os
 import pickle
+from collections import Counter
 
 import pandas as pd
+from kiwipiepy import Kiwi
+from kiwipiepy.utils import Stopwords
 from transformers import pipeline
 import plotly.express as px
 import plotly.graph_objects as go
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import squarify
 from stqdm import stqdm
 import streamlit as st
 
@@ -14,9 +18,19 @@ import preprocess as prep
 import mongodb
 
 
+mpl.rcParams['axes.unicode_minus'] = False
+plt.rcParams["font.family"] = 'NanumGothicCoding'
+
+prep.make_user_dictionary()
+
+kiwi = Kiwi()
+kiwi.load_user_dictionary('user_dictionary.txt')
+kiwi.prepare()
+stopwords = Stopwords()
+
 st.set_page_config(
     page_title="리뷰데이터 제로샷 자연어 추론",
-    page_icon="📜",
+    page_icon="	🤖",
     layout="wide",
     initial_sidebar_state="auto",
 )
@@ -104,6 +118,22 @@ def draw_radar_charts_yearly(dfs, all_years):
     )
     st.plotly_chart(fig, use_container_width=True)
 
+def draw_word_squarify_plot(result, label_selected, n_words):
+    sents_by_class = ' '.join(result[result['class']==f"{label_selected}"]['sequence'].tolist())
+
+    tokens = stopwords.filter(kiwi.tokenize(sents_by_class))
+    nouns = []
+    for token in tokens:
+        if token.tag in ['NNG', 'NNP', 'SL']:
+            nouns.append(token.form)
+    cnt_nouns = Counter(nouns).most_common(n_words)
+    nouns_df = pd.DataFrame(cnt_nouns)
+
+    fig = plt.figure(figsize=(15, 15))
+    squarify.plot(nouns_df[1], label = nouns_df[0], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
+    plt.axis('off')
+    st.pyplot(fig)
+
 df, comp_name_ls = get_df()
 model = get_model()
 
@@ -165,13 +195,10 @@ with st.container():
     if not idx:
         idx = 0
 
-tab1, tab2 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교"])
+tab1, tab2, tab3 = st.tabs(["🗃 샘플 테스트", "📈 연도별 트렌드 결과 비교", "🏷️ 레이블 키워드 관련 빈출 어휘"])
 
 with tab1:
-    st.subheader(f'{year}년 {company_name} 샘플 결과')
-
-
-    st.subheader("Result")
+    st.subheader(f'{year}년 {company_name}-{col} 샘플 결과')
 
     col1, col2 = st.columns([2, 1])
 
@@ -194,7 +221,7 @@ with tab1:
         )
 
 with tab2:
-    st.subheader(f'{company_name} 연도별 트렌드 결과')
+    st.subheader(f'{company_name}-{col} 연도별 트렌드 결과')
 
     yealy_score_dfs = []
     all_years = df_comp['year'].unique().tolist()
@@ -205,3 +232,16 @@ with tab2:
         score_avg_by_year = get_score_avg_by_label(result_by_year)
         yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
     draw_radar_charts_yearly(yealy_score_dfs, all_years)
+
+with tab3:
+    st.subheader(f'{year}년 {company_name}-{col} 레이블별 관련 빈출 어휘 그래프')
+
+    label_selected = st.selectbox(
+        "✓ 레이블 명을 입력/선택하세요.",
+        candidate_labels
+    )
+    n_words = st.slider(
+        "✓ 그래프에서 보여줄 단어의 수를 선택하세요.",
+        20, 50, (30)
+    )
+    draw_word_squarify_plot(result, label_selected, n_words)
