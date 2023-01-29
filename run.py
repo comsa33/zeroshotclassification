@@ -71,7 +71,6 @@ def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
     output = _model(sample_text, candidate_labels, multi_label=multi_label)
     return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
 
-@st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -82,7 +81,6 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
-@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -90,7 +88,6 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean().reset_index().sort_values(by='index')
 
-@st.experimental_memo
 def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx, sample_n):
     yealy_score_dfs = []
     all_years = df['year'].unique().tolist()
@@ -187,9 +184,9 @@ with st.sidebar:
 
 col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
 
-st.session_state.df_comp = get_df_by_comp(st.session_state.df, company_name)
-st.session_state.df_year = get_df_by_year(st.session_state.df_comp, year)
-n_df_year = len(st.session_state.df_year) 
+df_company = get_df_by_comp(st.session_state.df, company_name)
+df_year = get_df_by_year(df_company, year)
+n_df_year = len(df_year) 
 n_df_year_limit = n_df_year if n_df_year < 101 else 100
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
@@ -255,13 +252,13 @@ with tab2:
     tab2_col1, tab2_col2 = st.columns([2, 1])
 
     with tab2_col1:
-        docs_sample = st.session_state.df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
-        st.session_state.result = get_result(st.session_state.model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
-        st.dataframe(st.session_state.result)
+        docs_sample = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
+        result = get_result(st.session_state.model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
+        st.dataframe(result)
         st.caption(f"{year}년 {company_name}추론 결과표")
 
     with tab2_col2:
-        score_avg = get_score_avg_by_label(st.session_state.result)
+        score_avg = get_score_avg_by_label(result)
         draw_radar_chart(score_avg)
         st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
@@ -269,7 +266,7 @@ with tab3:
     st.subheader(f'{company_name}-{col} 연도별 트렌드 결과')
 
     yealy_score_dfs, all_years = get_all_score_dfs(
-        st.session_state.df_comp, col_dic[col], st.session_state.model, candidate_labels, multi_label_input, idx, sample_n
+        df_company, col_dic[col], st.session_state.model, candidate_labels, multi_label_input, idx, sample_n
     )
     draw_radar_charts_yearly(yealy_score_dfs, all_years)
 
@@ -291,5 +288,4 @@ with tab4:
             "✓ 시각화 스타일을 선택할 수 있습니다.",
             ('squarify', 'wordcloud')
         )
-    draw_word_plot(st.session_state.result, label_selected, n_words, style=style)
-
+    draw_word_plot(result, label_selected, n_words, style=style)
