@@ -71,6 +71,7 @@ def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
     output = _model(sample_text, candidate_labels, multi_label=multi_label)
     return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
 
+@st.experimental_memo
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -81,6 +82,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
 
+@st.experimental_memo
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -88,6 +90,7 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean().reset_index().sort_values(by='index')
 
+@st.experimental_memo
 def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx, sample_n):
     yealy_score_dfs = []
     all_years = df['year'].unique().tolist()
@@ -133,6 +136,7 @@ def draw_radar_charts_yearly(dfs, all_years):
     )
     st.plotly_chart(fig, use_container_width=True)
 
+@st.experimental_singleton
 def draw_word_plot(result, label_selected, n_words, style='squarify'):
     sents_by_class = ' '.join(result[result['class']==f"{label_selected}"]['sequence'].tolist())
 
@@ -289,3 +293,4 @@ with tab4:
             ('squarify', 'wordcloud')
         )
     draw_word_plot(result, label_selected, n_words, style=style)
+
