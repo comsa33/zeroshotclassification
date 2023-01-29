@@ -145,11 +145,11 @@ def draw_word_plot(result, label_selected, n_words, style='squarify'):
         if token.tag in ['NNG', 'NNP', 'SL']:
             nouns.append(token.form)
     cnt_nouns = Counter(nouns).most_common(n_words)
-    nouns_df = pd.DataFrame(cnt_nouns)
+    nouns_df = pd.DataFrame(cnt_nouns, columns=['words', 'count'])
 
     if style == 'squarify':
         fig = plt.figure(figsize=(10, 5))
-        squarify.plot(nouns_df[1], label = nouns_df[0], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
+        squarify.plot(nouns_df['count'], label = nouns_df['words'], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
         plt.axis('off')
 
     elif style == 'wordcloud':
@@ -170,7 +170,7 @@ with st.sidebar:
     st.text('---[데이터 필터]---')
     year = st.slider(
         '⁜ 연도를 선택하세요.',
-        2014, 2022, (2021)
+        2014, 2022, (2022)
     )
     col = st.selectbox(
         "⁜ 분석 텍스트 필드를 선택하세요.",
@@ -234,27 +234,34 @@ with tab1:
 - 이 다국어 모델은 100개 언어에 대해 자연어 추론(NLI)을 수행할 수 있으므로 다국어 제로샷 분류에도 적합합니다. 기본 mDeBERTa-v3-base 모델은 100개 언어로 구성된 CC100 다국어 데이터 세트에서 Microsoft에 의해 사전 훈련되었습니다. 그런 다음 모델은 XNLI 데이터 세트와 다국어 NLI-26lang-2mil7 데이터 세트에서 fine-tune되었습니다. 두 데이터 세트 모두 40억 명이 넘는 사람들이 사용하는 27개 언어로 된 270만 개 이상의 가설-전제 쌍을 포함합니다.
             """
         )
-
-    sample_text = st.text_input(
-        "✓ 분류하고자 하는 샘플 텍스트를 입력하세요.",
-        "Mobility intelligence as a service. 카카오모빌리티는 카카오택시, 카카오내비, 카카오대리, 카카오T, 카카오주차, 카카오바이크 등 다양한 모빌리티 서비스들을 사용자에게 제공하고 있으며 이를 통해 대한민국의 모빌리티 산업을 선도하고 있습니다. 이 많은 서비스를 유저와 업계 종사자에게 유려하게 제공하기 위해서는 사용자와 직접 연결되는 클라이언트가 매우 중요합니다. 카카오모빌리티에서는 이러한 서비스 클라이언트들이 훌륭한 동료, 훌륭한 조직문화 속에서 함께 고민하고 만들어가는 과정을 통해 더 나은 모빌리티 세상을 만들 수 있는 기회를 제공할 것입니다."
-    )
-    if sample_text:
-        sample_result = test_sample_text(model, sample_text, candidate_labels, multi_label_input)
-        st.dataframe(sample_result)
+    tab1_col1, _, tab1_col2 = st.columns([4,1,2])
+    with tab1_col1:
+        sample_text = st.text_area(
+            "✓ 분류하고자 하는 샘플 텍스트를 입력하세요.",
+            """카카오모빌리티는 카카오택시, 카카오내비, 카카오대리, 카카오T, 카카오주차, 카카오바이크 등 
+    다양한 모빌리티 서비스들을 사용자에게 제공하고 있으며 이를 통해 대한민국의 모빌리티 산업을 선도하고 있습니다.
+    이 많은 서비스를 유저와 업계 종사자에게 유려하게 제공하기 위해서는 사용자와 직접 연결되는 클라이언트가 매우 중요합니다.
+    카카오모빌리티에서는 이러한 서비스 클라이언트들이 훌륭한 동료, 훌륭한 조직문화 속에서 함께 고민하고 만들어가는 과정을 통해 
+    더 나은 모빌리티 세상을 만들 수 있는 기회를 제공할 것입니다.
+            """
+        )
+    with tab1_col2:
+        if sample_text:
+            sample_result = test_sample_text(model, sample_text, candidate_labels, multi_label_input)
+            st.dataframe(sample_result)
 
 with tab2:
     st.subheader(f'{year}년 {company_name}-{col} 샘플 결과')
 
-    tab1_col1, tab1_col2 = st.columns([2, 1])
+    tab2_col1, tab2_col2 = st.columns([2, 1])
 
-    with tab1_col1:
+    with tab2_col1:
         docs_sample = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
         result = get_result(model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
         st.dataframe(result)
         st.caption(f"{year}년 {company_name}추론 결과표")
 
-    with tab1_col2:
+    with tab2_col2:
         score_avg = get_score_avg_by_label(result)
         draw_radar_chart(score_avg)
         st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
@@ -269,18 +276,18 @@ with tab3:
 
 with tab4:
     st.subheader(f'{year}년 {company_name}-{col} 레이블별 관련 빈출 어휘 그래프')
-    tab3_col1, _, tab3_col2, _, tab3_col3 = st.columns([5,1,5,1,5])
-    with tab3_col1:
+    tab4_col1, _, tab4_col2, _, tab4_col3 = st.columns([5,1,5,1,5])
+    with tab4_col1:
         label_selected = st.selectbox(
             "✓ 레이블 명을 입력/선택하세요.",
             candidate_labels
         )
-    with tab3_col2:
+    with tab4_col2:
         n_words = st.slider(
             "✓ 그래프에서 보여줄 단어의 수를 선택하세요.",
             20, 50, (30)
         )
-    with tab3_col3:
+    with tab4_col3:
         style = st.radio(
             "✓ 시각화 스타일을 선택할 수 있습니다.",
             ('squarify', 'wordcloud')
