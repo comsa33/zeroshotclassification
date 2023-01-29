@@ -95,7 +95,7 @@ def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx,
     yealy_score_dfs = []
     all_years = df['year'].unique().tolist()
     for yr in stqdm(all_years):
-        df_year_ = get_df_by_year(df_comp, yr)
+        df_year_ = get_df_by_year(df, yr)
         docs_by_year = df_year_[col].apply(prep.preprocess_text).tolist()
         result_by_year = get_result(_model, docs_by_year, candidate_labels, multi_label_input, idx, sample_n)
         yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
@@ -242,12 +242,7 @@ with tab1:
     with tab1_col1:
         sample_text = st.text_area(
             "✓ 분류하고자 하는 샘플 텍스트를 입력하세요.",
-            """카카오모빌리티는 카카오택시, 카카오내비, 카카오대리, 카카오T, 카카오주차, 카카오바이크 등 
-    다양한 모빌리티 서비스들을 사용자에게 제공하고 있으며 이를 통해 대한민국의 모빌리티 산업을 선도하고 있습니다.
-    이 많은 서비스를 유저와 업계 종사자에게 유려하게 제공하기 위해서는 사용자와 직접 연결되는 클라이언트가 매우 중요합니다.
-    카카오모빌리티에서는 이러한 서비스 클라이언트들이 훌륭한 동료, 훌륭한 조직문화 속에서 함께 고민하고 만들어가는 과정을 통해 
-    더 나은 모빌리티 세상을 만들 수 있는 기회를 제공할 것입니다.
-            """
+            """카카오모빌리티는 카카오택시, 카카오내비, 카카오대리, 카카오T, 카카오주차, 카카오바이크 등 다양한 모빌리티 서비스들을 사용자에게 제공하고 있으며 이를 통해 대한민국의 모빌리티 산업을 선도하고 있습니다.이 많은 서비스를 유저와 업계 종사자에게 유려하게 제공하기 위해서는 사용자와 직접 연결되는 클라이언트가 매우 중요합니다.카카오모빌리티에서는 이러한 서비스 클라이언트들이 훌륭한 동료, 훌륭한 조직문화 속에서 함께 고민하고 만들어가는 과정을 통해 더 나은 모빌리티 세상을 만들 수 있는 기회를 제공할 것입니다."""
         )
     with tab1_col2:
         if sample_text:
