@@ -144,27 +144,31 @@ def draw_word_plot(result, label_selected, n_words, style='squarify'):
     for token in tokens:
         if token.tag in ['NNG', 'NNP', 'SL']:
             nouns.append(token.form)
-    cnt_nouns = Counter(nouns).most_common(n_words)
-    nouns_df = pd.DataFrame(cnt_nouns, columns=['words', 'count'])
+    
+    if nouns:
+        cnt_nouns = Counter(nouns).most_common(n_words)
+        nouns_df = pd.DataFrame(cnt_nouns, columns=['words', 'count'])
 
-    if style == 'squarify':
-        fig = plt.figure(figsize=(10, 5))
-        squarify.plot(nouns_df['count'], label = nouns_df['words'], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
-        plt.axis('off')
+        if style == 'squarify':
+            fig = plt.figure(figsize=(10, 5))
+            squarify.plot(nouns_df['count'], label = nouns_df['words'], color=plt.cool(), alpha=0.5, edgecolor="white", linewidth=2)
+            plt.axis('off')
 
-    elif style == 'wordcloud':
-        word_cloud = WordCloud(font_path='/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
-                        width = 1000, height = 500,
-                        background_color='white')
-        word_cloud.generate_from_frequencies(dict(cnt_nouns))
-        fig = plt.figure(figsize=(10, 5))
-        plt.imshow(word_cloud)
-        plt.axis("off")
-        plt.tight_layout(pad=0)
-    st.pyplot(fig)
+        elif style == 'wordcloud':
+            word_cloud = WordCloud(font_path='/usr/share/fonts/truetype/nanum/NanumGothic.ttf',
+                            width = 1000, height = 500,
+                            background_color='white')
+            word_cloud.generate_from_frequencies(dict(cnt_nouns))
+            fig = plt.figure(figsize=(10, 5))
+            plt.imshow(word_cloud)
+            plt.axis("off")
+            plt.tight_layout(pad=0)
+        st.pyplot(fig)
+    else:
+        st.write("표시할 명사형 어휘가 존재하지 않습니다.")
 
-df, comp_name_ls = get_df()
-model = get_model()
+st.session_state.df, st.session_state.comp_name_ls = get_df()
+st.session_state.model = get_model()
 
 with st.sidebar:
     st.text('---[데이터 필터]---')
@@ -178,14 +182,14 @@ with st.sidebar:
     )
     company_name = st.selectbox(
         "⁜ 회사명을 입력/선택하세요.",
-        comp_name_ls
+        st.session_state.comp_name_ls
     )
 
 col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
 
-df_comp = get_df_by_comp(df, company_name)
-df_year = get_df_by_year(df_comp, year)
-n_df_year = len(df_year) 
+st.session_state.df_comp = get_df_by_comp(st.session_state.df, company_name)
+st.session_state.df_year = get_df_by_year(st.session_state.df_comp, year)
+n_df_year = len(st.session_state.df_year) 
 n_df_year_limit = n_df_year if n_df_year < 101 else 100
 
 st.title('[그레이비랩 기업부설 연구소 / AI lab.]')
@@ -247,7 +251,7 @@ with tab1:
         )
     with tab1_col2:
         if sample_text:
-            sample_result = test_sample_text(model, sample_text, candidate_labels, multi_label_input)
+            sample_result = test_sample_text(st.session_state.model, sample_text, candidate_labels, multi_label_input)
             st.dataframe(sample_result)
 
 with tab2:
@@ -256,13 +260,13 @@ with tab2:
     tab2_col1, tab2_col2 = st.columns([2, 1])
 
     with tab2_col1:
-        docs_sample = df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
-        result = get_result(model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
-        st.dataframe(result)
+        docs_sample = st.session_state.df_year[col_dic[col]].apply(prep.preprocess_text).tolist()
+        st.session_state.result = get_result(st.session_state.model, docs_sample, candidate_labels, multi_label_input, idx, sample_n)
+        st.dataframe(st.session_state.result)
         st.caption(f"{year}년 {company_name}추론 결과표")
 
     with tab2_col2:
-        score_avg = get_score_avg_by_label(result)
+        score_avg = get_score_avg_by_label(st.session_state.result)
         draw_radar_chart(score_avg)
         st.caption(f"{year}년 {company_name} 각 레이블 평균 추론 스코어")
 
@@ -270,7 +274,7 @@ with tab3:
     st.subheader(f'{company_name}-{col} 연도별 트렌드 결과')
 
     yealy_score_dfs, all_years = get_all_score_dfs(
-        df_comp, col_dic[col], model, candidate_labels, multi_label_input, idx, sample_n
+        st.session_state.df_comp, col_dic[col], st.session_state.model, candidate_labels, multi_label_input, idx, sample_n
     )
     draw_radar_charts_yearly(yealy_score_dfs, all_years)
 
@@ -292,5 +296,5 @@ with tab4:
             "✓ 시각화 스타일을 선택할 수 있습니다.",
             ('squarify', 'wordcloud')
         )
-    draw_word_plot(result, label_selected, n_words, style=style)
+    draw_word_plot(st.session_state.result, label_selected, n_words, style=style)
 
