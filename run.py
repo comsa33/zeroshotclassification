@@ -69,6 +69,10 @@ def get_model():
 def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
     multi_label = True if multi_label_input == "ON" else False
     output = _model(sample_text, candidate_labels, multi_label=multi_label)
+    try:
+        output['labels'] = label_mapping(output['labels'])
+    except:
+        pass
     return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
 
 @st.experimental_memo
@@ -318,7 +322,7 @@ with tab4:
     with tab4_col1:
         label_selected = st.selectbox(
             "✓ 레이블 명을 입력/선택하세요.",
-            [label_dic[label] if label_dic.get(label) else label for label in candidate_labels]
+            [label_dict_selected[label] if label_dict_selected.get(label) else label for label in candidate_labels]
         )
     with tab4_col2:
         n_words = st.slider(
@@ -328,6 +332,6 @@ with tab4:
     with tab4_col3:
         style = st.radio(
             "✓ 시각화 스타일을 선택할 수 있습니다.",
-            ('squarify', 'wordcloud')
+            ('wordcloud', 'squarify')
         )
     draw_word_plot(result, label_selected, n_words, style=style)
