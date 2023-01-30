@@ -228,7 +228,7 @@ st.session_state.label_dict = {
     }
 }
 
-label_dict_selected = = dict([(value, key) for key, value in st.session_state.label_dict[col].items()])
+label_dict_selected = dict([(value, key) for key, value in st.session_state.label_dict[col].items()])
 
 with st.container():
     default_candidate_labels = ['배려', '목표', '학습', '즐거움', '결과', '권위', '안전', '질서']
