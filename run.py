@@ -79,8 +79,18 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
         output = _model(doc, candidate_labels, multi_label=multi_label)
         outputs.append(output)
     result = pd.DataFrame(outputs)
+    try:
+        result['labels'] = result['labels'].apply(label_mapping)
+    except:
+        pass
     result['class'] = result['labels'].apply(lambda x: x[0])
     return result[['sequence', 'class', 'labels', 'scores']]
+
+def label_mapping(labels):
+    new_labels = []
+    for label in labels:
+        new_labels.append(label_dict_selected[label])
+    return new_labels
 
 @st.experimental_memo
 def get_score_avg_by_label(result):
@@ -218,6 +228,8 @@ st.session_state.label_dict = {
     }
 }
 
+label_dict_selected = = dict([(value, key) for key, value in st.session_state.label_dict[col].items()])
+
 with st.container():
     default_candidate_labels = ['배려', '목표', '학습', '즐거움', '결과', '권위', '안전', '질서']
     user_input = st.text_input(
@@ -306,7 +318,7 @@ with tab4:
     with tab4_col1:
         label_selected = st.selectbox(
             "✓ 레이블 명을 입력/선택하세요.",
-            candidate_labels
+            [label_dic[label] if label_dic.get(label) else label for label in candidate_labels]
         )
     with tab4_col2:
         n_words = st.slider(
@@ -319,4 +331,3 @@ with tab4:
             ('squarify', 'wordcloud')
         )
     draw_word_plot(result, label_selected, n_words, style=style)
-
