@@ -107,7 +107,7 @@ def get_score_avg_by_label(result):
 @st.experimental_memo
 def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx, sample_n):
     yealy_score_dfs = []
-    all_years = df['year'].unique().tolist()
+    all_years = sorted(df['year'].unique().tolist())
     for yr in stqdm(all_years):
         df_year_ = get_df_by_year(df, yr)
         docs_by_year = df_year_[col].apply(prep.preprocess_text).tolist()
