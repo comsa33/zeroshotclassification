@@ -37,7 +37,7 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-@st.experimental_memo
+@st.cache_data
 def get_df():
     client = mongodb.client
     db_names = mongodb.db_names
@@ -51,17 +51,17 @@ def get_df():
     comp_name_ls = tuple(pickle.load(open(filename[0], 'rb')))
     return df, comp_name_ls
 
-@st.experimental_memo
+@st.cache_data
 def get_df_by_comp(df, company_name):
     df_comp = funcs.get_comp(df, company_name)
     return df_comp
 
-@st.experimental_memo
+@st.cache_data
 def get_df_by_year(df, year):
     df_year = df.query(f'year == {year}')
     return df_year
 
-@st.experimental_memo
+@st.cache_data
 def get_model():
     model = pipeline("zero-shot-classification", model="MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7")
     return model
@@ -75,7 +75,7 @@ def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
         pass
     return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
 
-@st.experimental_memo
+@st.cache_data
 def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n):
     multi_label = True if multi_label_input == "ON" else False
     outputs = []
@@ -96,7 +96,7 @@ def label_mapping(labels):
         new_labels.append(label_dict_selected[label])
     return new_labels
 
-@st.experimental_memo
+@st.cache_data
 def get_score_avg_by_label(result):
     dicts = []
     for labels, scores in list(zip(result['labels'].tolist(), result['scores'].tolist())):
@@ -104,7 +104,7 @@ def get_score_avg_by_label(result):
     score_df = pd.DataFrame(dicts)
     return score_df.mean().reset_index().sort_values(by='index')
 
-@st.experimental_memo
+@st.cache_data
 def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx, sample_n):
     yealy_score_dfs = []
     all_years = sorted(df['year'].unique().tolist())
@@ -115,7 +115,7 @@ def get_all_score_dfs(df, col, _model, candidate_labels, multi_label_input, idx,
         yealy_score_dfs.append(get_score_avg_by_label(result_by_year))
     return yealy_score_dfs, all_years
 
-@st.experimental_singleton
+@st.cache_resource
 def draw_radar_chart(df):
     fig = px.line_polar(df, r=0, theta='index', line_close=True)
     fig.update_traces(fill='toself')
@@ -128,7 +128,7 @@ def draw_radar_chart(df):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-@st.experimental_singleton
+@st.cache_resource
 def draw_radar_charts_yearly(dfs, all_years):
     fig = go.Figure()
     for year, df in zip(all_years, dfs):
@@ -150,7 +150,7 @@ def draw_radar_charts_yearly(dfs, all_years):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-@st.experimental_singleton
+@st.cache_resource
 def draw_word_plot(result, label_selected, n_words, style='squarify'):
     sents_by_class = ' '.join(result[result['class']==f"{label_selected}"]['sequence'].tolist())
 
