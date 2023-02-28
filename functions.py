@@ -44,8 +44,8 @@ def get_data():
 
 
 def get_comp(df, company_name):
-    df_ = df[df['Company_name'] == company_name]
-    df_['DatePost'] = pd.to_datetime(df_['DatePost'], errors='coerce')
+    df_ = df[df['comp_nm'] == company_name]
+    df_['DatePost'] = pd.to_datetime(df_['post_dt'], errors='coerce')
     df_['year'] = df_['DatePost'].apply(lambda x: x.year)
     return df_
 
@@ -68,11 +68,11 @@ def get_model():
     return model
 
 
-def test_sample_text(_model, sample_text, candidate_labels, multi_label_input):
+def test_sample_text(_model, sample_text, candidate_labels, multi_label_input, label_dict_selected):
     multi_label = True if multi_label_input == "ON" else False
     output = _model(sample_text, candidate_labels, multi_label=multi_label)
     try:
-        output['labels'] = label_mapping(output['labels'])
+        output['labels'] = label_mapping(output['labels'], label_dict_selected)
     except:
         pass
     return pd.DataFrame(output['scores'], output['labels'], columns=['scores'])
@@ -94,7 +94,7 @@ def get_result(_model, docs, candidate_labels, multi_label_input, idx, sample_n)
     return result[['sequence', 'class', 'labels', 'scores']]
 
 
-def label_mapping(labels):
+def label_mapping(labels, label_dict_selected):
     new_labels = []
     for label in labels:
         new_labels.append(label_dict_selected[label])

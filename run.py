@@ -34,7 +34,7 @@ with st.sidebar:
     )
 
 try:
-    col_dic = {'장점': 'Pros', '단점': 'Cons', '경영진에게': 'To_Management'}
+    col_dic = {'장점': 'pros', '단점': 'cons', '경영진에게': 'to_management'}
 
     df_company = funcs.get_df_by_comp(st.session_state.df, company_name)
     df_year = funcs.get_df_by_year(df_company, year)
@@ -118,7 +118,7 @@ try:
             )
         with tab1_col2:
             if sample_text:
-                sample_result = funcs.test_sample_text(st.session_state.model, sample_text, candidate_labels, multi_label_input)
+                sample_result = funcs.test_sample_text(st.session_state.model, sample_text, candidate_labels, multi_label_input, label_dict_selected)
                 st.dataframe(sample_result)
 
     with tab2:
