@@ -16,7 +16,7 @@ st.session_state.comp_name_ls = funcs.comp_name_ls
 
 
 if st.button('GET DATA'):
-    st.session_state.df = funcs.get_df()
+    st.session_state.df = funcs.get_data()
 
 with st.sidebar:
     st.text('[데이터 필터]')
