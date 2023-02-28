@@ -1,7 +1,7 @@
-POSTGRE_HOST = "59.10.38.6"
-POSTGRE_PORT = 30432
-POSTGRE_USERNAME = "gravylab"
-POSTGRE_PASSWORD = "gravylab2022"
-POSTGRE_DATABASE = "ai_lab"
+POSTGRE_HOST = "****"
+POSTGRE_PORT = ****
+POSTGRE_USERNAME = "****"
+POSTGRE_PASSWORD = "****"
+POSTGRE_DATABASE = "****"
 
 model_name = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
