@@ -25,7 +25,7 @@ mpl.rcParams['axes.unicode_minus'] = False
 plt.rcParams["font.family"] = 'NanumGothicCoding'
 
 kiwi = Kiwi()
-kiwi.load_user_dictionary('user_dictionary.txt')
+# kiwi.load_user_dictionary('user_dictionary.txt')
 kiwi.prepare()
 stopwords = Stopwords()
 
