@@ -12,7 +12,7 @@ RUN apt-get update -y && apt-get upgrade -y
 RUN apt-get install fontconfig -y
 RUN apt-get install fonts-nanum*
 RUN fc-cache -fv
-RUN pip install pymongo pandas plotly wordcloud squarify streamlit stqdm transformers kiwipiepy matplotlib
+RUN pip install pandas plotly wordcloud squarify streamlit stqdm transformers kiwipiepy matplotlib sqlalchemy psycopg2-binary
 RUN pip install transformers[sentencepiece]
 RUN pip3 install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
 
